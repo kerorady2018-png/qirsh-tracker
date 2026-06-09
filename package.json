@@ -1,6 +1,8 @@
 {
+  "name": "qirsh-tracker",
+  "version": "1.0.0",
   "dependencies": {
-    "puppeteer-core": "^10.4.0",
-    "chrome-aws-lambda": "^10.1.0"
+    "chrome-aws-lambda": "^10.1.0",
+    "puppeteer-core": "^10.1.0"
   }
 }
