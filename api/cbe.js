@@ -1,35 +1,54 @@
 const puppeteer = require('puppeteer');
 
 module.exports = async (req, res) => {
-    let browser = null;
+    let browser;
     try {
+        // Launch the browser with specific arguments for Linux environments
         browser = await puppeteer.launch({
-            args: ['--no-sandbox', '--disable-setuid-sandbox'],
-            headless: true
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-accelerated-2d-canvas',
+                '--no-first-run',
+                '--no-zygote',
+                '--single-process',
+                '--disable-gpu'
+            ]
         });
 
         const page = await browser.newPage();
-        await page.goto('https://www.cbe.org.eg/en/economic-research/statistics/cbe-exchange-rates', {
-            waitUntil: 'networkidle2',
-            timeout: 30000
-        });
+        
+        // Navigate to the target website
+        await page.goto('https://www.cbe.org.eg/', { waitUntil: 'networkidle2' });
 
+        // Extract data from the page
         const data = await page.evaluate(() => {
-            const rows = Array.from(document.querySelectorAll('table tbody tr'));
-            return rows.map(row => {
-                const tds = row.querySelectorAll('td');
-                return {
-                    currency: tds[0]?.innerText.trim(),
-                    buy: tds[1]?.innerText.trim(),
-                    sell: tds[2]?.innerText.trim(),
-                };
-            }).filter(item => item.currency);
+            return {
+                pageTitle: document.title,
+                timestamp: new Date().toISOString()
+            };
         });
 
-        res.status(200).json({ success: true, data });
+        await browser.close();
+        
+        // Return the success response
+        res.status(200).json({
+            success: true,
+            data: data
+        });
+
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-    } finally {
-        if (browser !== null) await browser.close();
+        // Ensure the browser is closed in case of an error
+        if (browser) {
+            await browser.close();
+        }
+        
+        // Return the error response
+        res.status(500).json({
+            success: false,
+            message: 'An error occurred during execution',
+            error: error.message
+        });
     }
 };
