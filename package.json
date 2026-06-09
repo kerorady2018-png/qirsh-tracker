@@ -1,0 +1,13 @@
+{
+  "name": "qirsh-tracker",
+  "version": "1.0.0",
+  "description": "Tracker project",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "puppeteer-core": "^23.0.0"
+  }
+}
