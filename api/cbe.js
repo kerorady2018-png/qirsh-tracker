@@ -4,39 +4,35 @@ const puppeteer = require('puppeteer-core');
 module.exports = async (req, res) => {
   let browser = null;
   try {
+    const executablePath = await chromium.executablePath;
+
     browser = await puppeteer.launch({
       args: chromium.args,
-      executablePath: await chromium.executablePath,
+      executablePath: executablePath,
       headless: chromium.headless,
     });
 
     const page = await browser.newPage();
     await page.goto('https://www.cbe.org.eg/en/economic-research/statistics/cbe-exchange-rates', {
       waitUntil: 'networkidle2',
-      timeout: 60000
+      timeout: 30000,
     });
 
     const data = await page.evaluate(() => {
-      const result = [];
-      const table = document.querySelector('table');
-      if (!table) return [];
-      const rows = table.querySelectorAll('tbody tr');
-      rows.forEach(row => {
+      const rows = Array.from(document.querySelectorAll('table tbody tr'));
+      return rows.map(row => {
         const tds = row.querySelectorAll('td');
-        if (tds.length >= 3) {
-          result.push({
-            currency: tds[0].innerText.trim(),
-            buy: tds[1].innerText.trim(),
-            sell: tds[2].innerText.trim()
-          });
-        }
-      });
-      return result;
+        return {
+          currency: tds[0]?.innerText.trim(),
+          buy: tds[1]?.innerText.trim(),
+          sell: tds[2]?.innerText.trim(),
+        };
+      }).filter(item => item.currency);
     });
 
-    res.status(200).json({ data });
+    res.status(200).json({ success: true, data });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   } finally {
     if (browser !== null) await browser.close();
   }
