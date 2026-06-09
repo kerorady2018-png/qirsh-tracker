@@ -1,8 +1,9 @@
 {
   "functions": {
-    "api/cbe.js": {
-      "memory": 1024,
-      "maxDuration": 60
+    "api/*.js": {
+      "maxDuration": 60,
+      "memory": 1024
     }
-  }
+  },
+  "rewrites": [{ "source": "/(.*)", "destination": "/api/$1" }]
 }
