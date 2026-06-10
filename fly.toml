@@ -1,4 +1,5 @@
-app = "cbe-project" # Use your actual app name here
+app = "cbe-project"
+primary_region = "fra"
 
 [http_service]
 internal_port = 8080
