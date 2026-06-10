@@ -1,7 +1,6 @@
 const express = require('express');
 const puppeteer = require('puppeteer-core');
 const chromium = require('@sparticuz/chromium');
-
 const app = express();
 const port = process.env.PORT || 8080;
 
@@ -16,12 +15,19 @@ app.get('/api/cbe', async (req, res) => {
         });
         
         const page = await browser.newPage();
+        
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36');
         
-        await page.goto('https://www.banquemisr.com/ar-EG/MarketData/CurrencyExchangeRates', { waitUntil: 'networkidle2' });
+        await page.goto('https://www.banquemisr.com/ar-EG/MarketData/CurrencyExchangeRates', { 
+            waitUntil: 'networkidle2',
+            timeout: 60000 
+        });
+
+        // Ensure the table container is present before evaluating
+        await page.waitForSelector('.table-responsive', { timeout: 15000 });
         
         const data = await page.evaluate(() => {
-            const rows = Array.from(document.querySelectorAll('.table-responsive table tbody tr'));
+            const rows = Array.from(document.querySelectorAll('table tbody tr'));
             return rows.map(row => {
                 const tds = row.querySelectorAll('td');
                 if (tds.length < 3) return null;
@@ -30,11 +36,12 @@ app.get('/api/cbe', async (req, res) => {
                     sell: tds[1]?.innerText.trim(),
                     buy: tds[2]?.innerText.trim()
                 };
-            }).filter(item => item !== null);
+            }).filter(item => item !== null && item.currency !== "");
         });
         
         await browser.close();
         res.json({ success: true, data });
+        
     } catch (error) {
         if (browser) await browser.close();
         res.status(500).json({ success: false, error: error.message });
