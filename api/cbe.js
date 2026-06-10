@@ -1,6 +1,7 @@
 const express = require('express');
 const puppeteer = require('puppeteer-core');
 const chromium = require('@sparticuz/chromium');
+
 const app = express();
 const port = process.env.PORT || 8080;
 
@@ -15,13 +16,9 @@ app.get('/api/cbe', async (req, res) => {
         });
         
         const page = await browser.newPage();
-        
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36');
         
-        await page.goto('https://www.banquemisr.com/ar-EG/MarketData/CurrencyExchangeRates', { 
-            waitUntil: 'networkidle2',
-            timeout: 60000 
-        });
+        await page.goto('https://www.banquemisr.com/ar-EG/MarketData/CurrencyExchangeRates', { waitUntil: 'networkidle2' });
         
         const data = await page.evaluate(() => {
             const rows = Array.from(document.querySelectorAll('.table-responsive table tbody tr'));
@@ -38,7 +35,6 @@ app.get('/api/cbe', async (req, res) => {
         
         await browser.close();
         res.json({ success: true, data });
-        
     } catch (error) {
         if (browser) await browser.close();
         res.status(500).json({ success: false, error: error.message });
