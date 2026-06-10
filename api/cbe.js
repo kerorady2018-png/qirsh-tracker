@@ -13,29 +13,35 @@ app.get('/api/cbe', async (req, res) => {
             executablePath: await chromium.executablePath(),
             headless: chromium.headless,
         });
-        const page = await browser.newPage();
-        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
         
-        await page.goto('https://www.cbe.org.eg/en/economic-research/statistics/cbe-exchange-rates', { waitUntil: 'networkidle2' });
+        const page = await browser.newPage();
+        
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36');
+        
+        await page.goto('https://www.banquemisr.com/ar-EG/MarketData/CurrencyExchangeRates', { 
+            waitUntil: 'networkidle2',
+            timeout: 60000 
+        });
         
         const data = await page.evaluate(() => {
-            const table = document.querySelector('table');
-            const rows = Array.from(table.querySelectorAll('tbody tr'));
+            const rows = Array.from(document.querySelectorAll('.table-responsive table tbody tr'));
             return rows.map(row => {
                 const tds = row.querySelectorAll('td');
+                if (tds.length < 3) return null;
                 return {
                     currency: tds[0]?.innerText.trim(),
-                    buy: tds[1]?.innerText.trim(),
-                    sell: tds[2]?.innerText.trim()
+                    sell: tds[1]?.innerText.trim(),
+                    buy: tds[2]?.innerText.trim()
                 };
-            });
+            }).filter(item => item !== null);
         });
         
         await browser.close();
         res.json({ success: true, data });
+        
     } catch (error) {
         if (browser) await browser.close();
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 
