@@ -1,0 +1,12 @@
+{
+  "name": "cbe-project",
+  "version": "1.0.0",
+  "main": "api/cbe.js",
+  "scripts": {
+    "start": "node api/cbe.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "node-fetch": "^2.6.7"
+  }
+}
